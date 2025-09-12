@@ -12,6 +12,11 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
+    "docker-up:local": "docker compose --env-file .env.local up --build -d",
+    "docker-up:dev": "docker compose --env-file .env.development up --build -d",
+    "docker-up:staging": "docker compose --env-file .env.staging up --build -d",
+    "docker-up:prod": "docker compose --env-file .env.production up --build -d",
+    "docker-down": "docker compose down -v --remove-orphans",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -20,11 +25,22 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@apollo/server": "^4.12.2",
+    "@nestjs/apollo": "^13.1.0",
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.1",
+    "@nestjs/graphql": "^13.1.0",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/typeorm": "^11.0.0",
+    "apollo-server-express": "^3.13.0",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "graphql": "^16.11.0",
+    "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.26"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

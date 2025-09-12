@@ -1,0 +1,51 @@
+networks:
+  app-net:
+
+services:
+  app:
+    build: .
+    container_name: monolingo_api
+    ports:
+      - '${PORT}:${PORT}'
+    environment:
+      # These are resolved from the env file you pass with --env-file
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      FRONTEND_URL: ${FRONTEND_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_SSL: ${DB_SSL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ['node', 'dist/main.js'] # overridden in dev
+    networks: [app-net]
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    container_name: monolingo_postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME} # <-- auto-creates DB on first init
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [app-net]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
