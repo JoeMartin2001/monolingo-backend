@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "docker-up:local": "docker compose --env-file .env.local up --build -d",
+    "docker-up:local": "docker compose --env-file .env.local up --build",
     "docker-up:dev": "docker compose --env-file .env.development up --build -d",
     "docker-up:staging": "docker compose --env-file .env.staging up --build -d",
     "docker-up:prod": "docker compose --env-file .env.production up --build -d",
