@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql';
+
 // Enum for CEFR levels
 export enum LanguageLevel {
   A1 = 'A1',
@@ -7,6 +9,11 @@ export enum LanguageLevel {
   C1 = 'C1',
   C2 = 'C2',
 }
+
+registerEnumType(LanguageLevel, {
+  name: 'LanguageLevel', // 👈 GraphQL schema type name
+  description: 'CEFR language proficiency levels',
+});
 
 // User account
 export interface IUser {
@@ -28,3 +35,8 @@ export enum IUserRole {
   STUDENT = 'student',
   TUTOR = 'tutor',
 }
+
+registerEnumType(IUserRole, {
+  name: 'IUserRole', // 👈 GraphQL schema type name
+  description: 'User roles',
+});

@@ -30,11 +30,11 @@ export class User implements IUser {
   @Column('text', { array: true, default: [] })
   languagesTeaching!: string[];
 
-  @Field()
+  @Field(() => Boolean)
   @Column({ default: false })
   isStudent!: boolean;
 
-  @Field()
+  @Field(() => LanguageLevel)
   @Column({ default: LanguageLevel.A1 })
   level!: LanguageLevel;
 

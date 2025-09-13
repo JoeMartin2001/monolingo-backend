@@ -2,18 +2,83 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+input CreateUserInput {
+  """Avatar URL"""
+  avatarUrl: String!
+
+  """Bio"""
+  bio: String!
+
+  """Email"""
+  email: String!
+
+  """Language Level"""
+  level: LanguageLevel!
+
+  """Native Language"""
+  nativeLanguage: String!
+
+  """Password"""
+  password: String!
+
+  """Target Language"""
+  targetLanguage: String!
+
+  """Username"""
+  username: String!
+}
+
 """
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
+"""CEFR language proficiency levels"""
+enum LanguageLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
 type Mutation {
-  user(id: String!): User!
+  createUser(createUserInput: CreateUserInput!): User!
+  removeUser(id: String!): User!
+  updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
 type Query {
-  user(id: String!): User!
-  users: [User!]!
+  findAll: [User!]!
+  findOne(id: String!): User!
+}
+
+input UpdateUserInput {
+  """Avatar URL"""
+  avatarUrl: String
+
+  """Bio"""
+  bio: String
+
+  """Email"""
+  email: String
+  id: String!
+
+  """Language Level"""
+  level: LanguageLevel
+
+  """Native Language"""
+  nativeLanguage: String
+
+  """Password"""
+  password: String
+
+  """Target Language"""
+  targetLanguage: String
+
+  """Username"""
+  username: String
 }
 
 type User {
@@ -25,7 +90,7 @@ type User {
   isStudent: Boolean!
   languagesLearning: [String!]!
   languagesTeaching: [String!]!
-  level: String!
+  level: LanguageLevel!
   nativeLanguage: String!
   role: String!
   targetLanguage: String!
