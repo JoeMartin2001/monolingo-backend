@@ -2,14 +2,14 @@ import { Module, Session } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { join } from 'path';
-import { UserModule } from './modules/user/user.module';
+import { UserModule } from '../user/user.module';
 import { Request } from 'express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import databaseConfig from './config/database.config';
-import appConfig from './config/app.config';
-import { validate as validateConfig } from './config/env.validation';
-import { User } from './modules/user/entities/user.entity';
+import databaseConfig from '../../config/database.config';
+import appConfig from '../../config/app.config';
+import { validate as validateConfig } from '../../config/env.validation';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   imports: [
