@@ -2,9 +2,10 @@ import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { IsOptional } from 'class-validator';
 import { IUser, IUserRole, LanguageLevel } from 'src/interfaces/User';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { TableName } from 'src/common/constants/TableName';
 
 @ObjectType()
-@Entity()
+@Entity(TableName.USER)
 export class User implements IUser {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
