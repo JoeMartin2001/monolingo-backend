@@ -1,8 +1,8 @@
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UserService } from './user.service';
 import { User } from './entities/user.entity';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateUserInput } from './dto/create-user.input';
+import { UpdateUserInput } from './dto/update-user.input';
 
 const QUERY_NAME = 'user';
 
@@ -11,8 +11,8 @@ export class UserResolver {
   constructor(private readonly userService: UserService) {}
 
   @Mutation(() => User, { name: QUERY_NAME })
-  createUser(@Args('createUserDto') createUserDto: CreateUserDto) {
-    return this.userService.create(createUserDto);
+  createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
+    return this.userService.create(createUserInput);
   }
 
   @Query(() => [User], { name: QUERY_NAME + 's' })
@@ -26,8 +26,8 @@ export class UserResolver {
   }
 
   @Mutation(() => User, { name: QUERY_NAME })
-  updateUser(@Args('updateUserDto') updateUserDto: UpdateUserDto) {
-    return this.userService.update(updateUserDto.id, updateUserDto);
+  updateUser(@Args('updateUserInput') updateUserInput: UpdateUserInput) {
+    return this.userService.update(updateUserInput.id, updateUserInput);
   }
 
   @Mutation(() => User, { name: QUERY_NAME })
