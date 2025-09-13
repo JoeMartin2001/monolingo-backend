@@ -2,6 +2,11 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
+type Auth {
+  accessToken: String!
+  refreshToken: String!
+}
+
 input CreateUserInput {
   """Avatar URL"""
   avatarUrl: String!
@@ -43,9 +48,17 @@ enum LanguageLevel {
   C2
 }
 
+input LoginInput {
+  email: String!
+  password: String!
+}
+
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
+  login(input: LoginInput!): Auth!
+  refreshToken(token: String!): Auth!
   removeUser(id: String!): User!
+  signup(input: CreateUserInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
 
