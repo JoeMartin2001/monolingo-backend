@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './modules/app/app.module';
-import { setupSwagger } from './docs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
@@ -41,9 +40,6 @@ const bootstrap = async () => {
         transform: true, // auto-transform payloads to DTO classes
       }),
     );
-
-    // Swagger setup
-    setupSwagger(app);
 
     // Config service
     const configService = app.get(ConfigService);
