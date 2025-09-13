@@ -5,7 +5,7 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { TableName } from 'src/common/constants/TableName';
 
 @ObjectType()
-@Entity(TableName.USER)
+@Entity(TableName.USERS)
 export class User implements IUser {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
