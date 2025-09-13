@@ -77,8 +77,13 @@ export class AuthService {
         { expiresIn: '15m' },
       );
 
-      return { accessToken: newAccessToken };
-    } catch {
+      return {
+        accessToken: newAccessToken,
+        refreshToken: token,
+        user: payload,
+      };
+    } catch (error) {
+      console.log(error);
       throw new UnauthorizedException('Invalid refresh token');
     }
   }
