@@ -49,7 +49,10 @@ const bootstrap = async () => {
 
     // Enable CORS
     app.enableCors({
-      origin: frontendUrl,
+      origin:
+        nodeEnv === 'development'
+          ? ['http://localhost:5173', 'http://localhost:3001']
+          : frontendUrl,
       credentials: true,
     });
 
