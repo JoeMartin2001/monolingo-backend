@@ -60,6 +60,16 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   OPENAI_API_KEY!: string;
+
+  // ───── Google ─────
+  @IsString()
+  GOOGLE_CLIENT_ID!: string;
+
+  @IsString()
+  GOOGLE_CLIENT_SECRET!: string;
+
+  @IsString()
+  GOOGLE_REDIRECT_URL!: string;
 }
 
 export function validate(config: Record<string, unknown>) {

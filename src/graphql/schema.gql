@@ -5,9 +5,13 @@
 type Auth {
   accessToken: String!
   refreshToken: String!
+  user: User!
 }
 
 input CreateUserInput {
+  """Auth Provider"""
+  authProvider: IUserAuthProvider!
+
   """Avatar URL"""
   avatarUrl: String!
 
@@ -16,6 +20,9 @@ input CreateUserInput {
 
   """Email"""
   email: String!
+
+  """Google ID"""
+  googleId: String
 
   """Language Level"""
   level: LanguageLevel!
@@ -38,6 +45,12 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+"""User auth providers"""
+enum IUserAuthProvider {
+  GOOGLE
+  LOCAL
+}
+
 """CEFR language proficiency levels"""
 enum LanguageLevel {
   A1
@@ -55,6 +68,7 @@ input LoginInput {
 
 type Mutation {
   createUser(createUserInput: CreateUserInput!): User!
+  googleAuth(token: String!): Auth!
   login(input: LoginInput!): Auth!
   refreshToken(token: String!): Auth!
   removeUser(id: String!): User!
@@ -68,6 +82,9 @@ type Query {
 }
 
 input UpdateUserInput {
+  """Auth Provider"""
+  authProvider: IUserAuthProvider
+
   """Avatar URL"""
   avatarUrl: String
 
@@ -76,6 +93,9 @@ input UpdateUserInput {
 
   """Email"""
   email: String
+
+  """Google ID"""
+  googleId: String
   id: String!
 
   """Language Level"""
@@ -95,16 +115,19 @@ input UpdateUserInput {
 }
 
 type User {
+  authProvider: String!
   avatarUrl: String!
   bio: String!
   createdAt: DateTime!
   email: String!
+  googleId: String!
   id: ID!
   isStudent: Boolean!
   languagesLearning: [String!]!
   languagesTeaching: [String!]!
   level: LanguageLevel!
   nativeLanguage: String!
+  password: String!
   role: String!
   targetLanguage: String!
   updatedAt: DateTime!

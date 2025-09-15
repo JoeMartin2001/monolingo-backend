@@ -9,6 +9,11 @@ export class AuthResolver {
   constructor(private readonly authService: AuthService) {}
 
   @Mutation(() => Auth)
+  async googleAuth(@Args('token') token: string): Promise<Auth> {
+    return await this.authService.googleAuth(token);
+  }
+
+  @Mutation(() => Auth)
   async signup(@Args('input') input: CreateUserInput) {
     return this.authService.signup(input);
   }

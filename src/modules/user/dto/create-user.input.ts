@@ -1,5 +1,5 @@
 import { InputType, Field } from '@nestjs/graphql';
-import { IUser, LanguageLevel } from 'src/interfaces/User';
+import { IUser, IUserAuthProvider, LanguageLevel } from 'src/interfaces/User';
 import { IsEnum, IsOptional, IsString } from 'class-validator';
 import { IsNotEmpty } from 'class-validator';
 
@@ -9,6 +9,16 @@ export class CreateUserInput implements Partial<IUser> {
   @IsNotEmpty()
   @Field(() => String, { description: 'Email' })
   email!: string;
+
+  @IsString()
+  @IsOptional()
+  @Field(() => String, { description: 'Google ID', nullable: true })
+  googleId?: string;
+
+  @IsString()
+  @IsOptional()
+  @Field(() => IUserAuthProvider, { description: 'Auth Provider' })
+  authProvider!: IUserAuthProvider;
 
   @IsString()
   @IsNotEmpty()

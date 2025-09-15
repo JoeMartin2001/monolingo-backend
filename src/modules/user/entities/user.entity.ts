@@ -1,6 +1,11 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { IsOptional } from 'class-validator';
-import { IUser, IUserRole, LanguageLevel } from 'src/interfaces/User';
+import { IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import {
+  IUser,
+  IUserAuthProvider,
+  IUserRole,
+  LanguageLevel,
+} from 'src/interfaces/User';
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 import { TableName } from 'src/common/constants/TableName';
 
@@ -12,11 +17,25 @@ export class User implements IUser {
   id!: string;
 
   @Field()
+  @IsEmail()
   @Column({ unique: true })
   email!: string;
 
-  @Column()
+  @Field()
+  @IsString()
+  @IsNotEmpty()
+  @Column({ nullable: true })
   password!: string; // don’t expose in GraphQL schema
+
+  @Field()
+  @IsString()
+  @IsOptional()
+  @Column({ nullable: true })
+  googleId?: string;
+
+  @Field()
+  @Column({ default: IUserAuthProvider.LOCAL })
+  authProvider!: IUserAuthProvider;
 
   @Field()
   @Column({ default: IUserRole.STUDENT })

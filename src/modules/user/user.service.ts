@@ -32,6 +32,10 @@ export class UserService {
     return this.userRepository.findOne({ where: { username } });
   }
 
+  findByGoogleId(googleId: string) {
+    return this.userRepository.findOne({ where: { googleId } });
+  }
+
   update(id: string, updateUserInput: UpdateUserInput) {
     return this.userRepository.update(id, updateUserInput);
   }

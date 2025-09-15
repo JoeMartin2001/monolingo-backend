@@ -19,11 +19,13 @@ registerEnumType(LanguageLevel, {
 export interface IUser {
   id: string;
   email: string;
+  password?: string;
   username: string;
   nativeLanguage: string; // e.g., "uz", "en"
   targetLanguage: string; // e.g., "en", "de"
   level: LanguageLevel; // starting level (A1–C2)
-
+  authProvider: IUserAuthProvider;
+  googleId?: string;
   bio?: string;
   avatarUrl?: string;
 
@@ -39,4 +41,14 @@ export enum IUserRole {
 registerEnumType(IUserRole, {
   name: 'IUserRole', // 👈 GraphQL schema type name
   description: 'User roles',
+});
+
+export enum IUserAuthProvider {
+  LOCAL = 'local',
+  GOOGLE = 'google',
+}
+
+registerEnumType(IUserAuthProvider, {
+  name: 'IUserAuthProvider', // 👈 GraphQL schema type name
+  description: 'User auth providers',
 });

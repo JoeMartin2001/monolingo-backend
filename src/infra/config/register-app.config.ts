@@ -11,6 +11,11 @@ export default registerAs('app', () => ({
   // OpenAI / AI provider (for question generation)
   openAiApiKey: process.env.OPENAI_API_KEY,
 
+  // Google
+  googleClientId: process.env.GOOGLE_CLIENT_ID,
+  googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
+  googleRedirectUrl: process.env.GOOGLE_REDIRECT_URL,
+
   // Other configs you might need later
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 
