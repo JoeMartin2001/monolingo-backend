@@ -49,16 +49,15 @@ const bootstrap = async () => {
 
     // Enable CORS
     app.enableCors({
-      origin:
-        nodeEnv === 'development'
-          ? ['http://localhost:5173', 'http://localhost:3001']
-          : frontendUrl,
+      origin: ['development', 'local'].includes(nodeEnv)
+        ? ['http://localhost:5173', 'http://localhost:3001']
+        : frontendUrl,
       credentials: true,
     });
 
     await app.listen(port);
 
-    if (nodeEnv === 'development') {
+    if (['development', 'local'].includes(nodeEnv)) {
       console.log(`🚀 Application is running on: http://localhost:${port}`);
     } else {
       console.log(`✅ Application started on port ${port} in ${nodeEnv} mode`);
