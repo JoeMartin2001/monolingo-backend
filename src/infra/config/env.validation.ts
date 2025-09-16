@@ -10,8 +10,9 @@ import {
   validateSync,
 } from 'class-validator';
 
-enum Environment {
+export enum Environment {
   Development = 'development',
+  Local = 'local',
   Production = 'production',
   Test = 'test',
   Provision = 'provision',

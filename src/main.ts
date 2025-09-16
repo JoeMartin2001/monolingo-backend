@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
+import { Environment } from './infra/config/env.validation';
 
 const bootstrap = async () => {
   try {
@@ -44,12 +45,13 @@ const bootstrap = async () => {
     // Config service
     const configService = app.get(ConfigService);
     const port = configService.get<number>('app.port') ?? 3000;
-    const nodeEnv = configService.get<string>('app.nodeEnv') ?? 'development';
+    const nodeEnv =
+      configService.get<Environment>('app.nodeEnv') ?? Environment.Development;
     const frontendUrl = configService.get<string>('app.frontendUrl') ?? '*';
 
     // Enable CORS
     app.enableCors({
-      origin: ['development', 'local'].includes(nodeEnv)
+      origin: [Environment.Development, Environment.Local].includes(nodeEnv)
         ? ['http://localhost:5173', 'http://localhost:3001']
         : frontendUrl,
       credentials: true,
@@ -57,7 +59,7 @@ const bootstrap = async () => {
 
     await app.listen(port);
 
-    if (['development', 'local'].includes(nodeEnv)) {
+    if ([Environment.Development, Environment.Local].includes(nodeEnv)) {
       console.log(`🚀 Application is running on: http://localhost:${port}`);
     } else {
       console.log(`✅ Application started on port ${port} in ${nodeEnv} mode`);

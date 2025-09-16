@@ -1,7 +1,8 @@
 import { registerAs } from '@nestjs/config';
+import { Environment } from './env.validation';
 
 export default registerAs('app', () => ({
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv: process.env.NODE_ENV || Environment.Development,
   port: parseInt(process.env.PORT ?? '3000', 10),
 
   // Security

@@ -2,6 +2,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { User } from 'src/modules/user/entities/user.entity';
 import { PasswordResetToken } from 'src/modules/auth/entities/password-reset-token.entity';
+import { Environment } from '../config/env.validation';
 
 export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
   type: 'postgres' as const,
@@ -12,10 +13,12 @@ export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
   database: config.get<string>('database.name'),
   ssl: config.get<boolean>('database.ssl'),
   autoLoadEntities: true,
-  synchronize: ['development', 'local'].includes(
-    config.get<string>('app.nodeEnv')!,
+  synchronize: [Environment.Development, Environment.Local].includes(
+    config.get<Environment>('app.nodeEnv')!,
   ), // use migrations instead
-  logging: ['development', 'local'].includes(config.get<string>('app.nodeEnv')!)
+  logging: [Environment.Development, Environment.Local].includes(
+    config.get<Environment>('app.nodeEnv')!,
+  )
     ? ['query', 'error', 'schema']
     : false,
   entities: [User, PasswordResetToken],
