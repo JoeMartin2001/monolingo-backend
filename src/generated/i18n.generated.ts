@@ -9,8 +9,7 @@ export type I18nTranslations = {
         "unauthorized": string;
         "invalid_google_token": string;
         "unverified_google_email": string;
-        "INVALID_GOOGLE_TOKEN": string;
-        "EMAIL_IN_USE": string;
+        "email_in_use": string;
         "HELLO": string;
     };
 };
