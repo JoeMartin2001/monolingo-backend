@@ -19,6 +19,7 @@ import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { IsNull, MoreThan, Repository } from 'typeorm';
 import { EmailService } from 'src/modules/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
+import { I18nService } from 'nestjs-i18n';
 
 @Injectable()
 export class AuthService {
@@ -35,6 +36,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+
+    private readonly i18n: I18nService,
   ) {
     this.googleClient = new OAuth2Client(
       this.configService.get('googleClientId'),
@@ -146,11 +149,15 @@ export class AuthService {
       const payload = ticket.getPayload();
 
       if (!payload || !payload.email) {
-        throw new UnauthorizedException('Invalid Google token');
+        throw new UnauthorizedException(
+          this.i18n.t('auth.invalid_google_token'),
+        );
       }
 
       if (!payload?.email || !payload?.email_verified)
-        throw new UnauthorizedException('Unverified Google email');
+        throw new UnauthorizedException(
+          this.i18n.t('auth.unverified_google_email'),
+        );
 
       const googleId = payload?.sub;
       const email = payload?.email;
@@ -243,10 +250,12 @@ export class AuthService {
     password: string,
   ): Promise<{ accessToken: string; refreshToken: string; user: User }> {
     const user = await this.usersService.findByEmail(email);
-    if (!user) throw new UnauthorizedException();
+    if (!user)
+      throw new UnauthorizedException(this.i18n.t('auth.unauthorized'));
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw new UnauthorizedException();
+    if (!isPasswordValid)
+      throw new UnauthorizedException(this.i18n.t('auth.unauthorized'));
 
     const { accessToken, refreshToken } = await this.signPair(user);
 
@@ -276,7 +285,9 @@ export class AuthService {
       };
     } catch (error) {
       console.log(error);
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.invalid_refresh_token'),
+      );
     }
   }
 
@@ -288,7 +299,8 @@ export class AuthService {
 
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) throw new UnauthorizedException();
+      if (!isPasswordValid)
+        throw new UnauthorizedException(this.i18n.t('auth.unauthorized'));
 
       return user;
     }

@@ -27,4 +27,7 @@ export default registerAs('app', () => ({
   // Swagger
   apiUrl: process.env.API_URL || `http://localhost:${process.env.PORT ?? 3000}`,
   prodApiUrl: process.env.PROD_API_URL || 'https://api.monolingo.ai',
+
+  // I18n
+  fallbackLanguage: process.env.FALLBACK_LANGUAGE || 'en',
 }));

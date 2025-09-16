@@ -5,6 +5,8 @@ import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import compression from 'compression';
 import { Environment } from './infra/config/env.validation';
+import { I18nMiddleware } from 'nestjs-i18n';
+import { I18nGqlExceptionFilter } from './common/filters/i18n-exception.filter';
 
 const bootstrap = async () => {
   try {
@@ -41,6 +43,10 @@ const bootstrap = async () => {
         transform: true, // auto-transform payloads to DTO classes
       }),
     );
+
+    // Global i18n validation
+    app.useGlobalFilters(new I18nGqlExceptionFilter());
+    app.use(I18nMiddleware);
 
     // Config service
     const configService = app.get(ConfigService);

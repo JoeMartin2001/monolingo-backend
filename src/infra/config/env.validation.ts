@@ -78,6 +78,10 @@ class EnvironmentVariables {
 
   @IsString()
   GMAIL_PASS!: string;
+
+  // ───── I18n ─────
+  @IsString()
+  FALLBACK_LANGUAGE!: string;
 }
 
 export function validate(config: Record<string, unknown>) {
