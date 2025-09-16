@@ -70,6 +70,13 @@ class EnvironmentVariables {
 
   @IsString()
   GOOGLE_REDIRECT_URL!: string;
+
+  // ───── Gmail ─────
+  @IsString()
+  GMAIL_USER!: string;
+
+  @IsString()
+  GMAIL_PASS!: string;
 }
 
 export function validate(config: Record<string, unknown>) {

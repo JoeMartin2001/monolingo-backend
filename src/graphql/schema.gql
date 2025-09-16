@@ -72,6 +72,8 @@ type Mutation {
   login(input: LoginInput!): Auth!
   refreshToken(token: String!): Auth!
   removeUser(id: String!): User!
+  requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
+  resetPassword(input: ResetPasswordInput!): Boolean!
   signup(input: CreateUserInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
 }
@@ -79,6 +81,15 @@ type Mutation {
 type Query {
   findOne(id: String!): User!
   users: [User!]!
+}
+
+input RequestPasswordResetInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  newPassword: String!
+  token: String!
 }
 
 input UpdateUserInput {

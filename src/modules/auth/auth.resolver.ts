@@ -1,8 +1,10 @@
-import { Resolver, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Mutation, Args, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { Auth } from './entities/auth.entity';
 import { LoginInput } from './dto/login.input';
 import { CreateUserInput } from '../user/dto/create-user.input';
+import { ResetPasswordInput } from './dto/reset-password.input';
+import { RequestPasswordResetInput } from './dto/request-password-reset.input';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -26,5 +28,36 @@ export class AuthResolver {
   @Mutation(() => Auth)
   async refreshToken(@Args('token') token: string): Promise<any> {
     return this.authService.refreshToken(token);
+  }
+
+  @Mutation(() => Boolean)
+  async requestPasswordReset(
+    @Args('input') input: RequestPasswordResetInput,
+    @Context()
+    {
+      req,
+    }: {
+      req: {
+        ip: string;
+        headers: {
+          'user-agent': string;
+        };
+      };
+    },
+  ) {
+    await this.authService.requestPasswordReset(
+      input.email,
+      req?.ip,
+      req?.headers['user-agent'],
+    );
+
+    return true; // Always true (no user enumeration)
+  }
+
+  @Mutation(() => Boolean)
+  async resetPassword(@Args('input') input: ResetPasswordInput) {
+    await this.authService.resetPassword(input.token, input.newPassword);
+
+    return true;
   }
 }

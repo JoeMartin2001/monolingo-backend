@@ -16,6 +16,10 @@ export default registerAs('app', () => ({
   googleClientSecret: process.env.GOOGLE_CLIENT_SECRET,
   googleRedirectUrl: process.env.GOOGLE_REDIRECT_URL,
 
+  // Gmail
+  gmailUser: process.env.GMAIL_USER,
+  gmailPass: process.env.GMAIL_PASS,
+
   // Other configs you might need later
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
 

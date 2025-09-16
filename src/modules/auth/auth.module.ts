@@ -9,6 +9,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { UserService } from '../user/user.service';
+import { EmailModule } from '../email/email.module';
+import { PasswordResetToken } from './entities/password-reset-token.entity';
+import { EmailService } from '../email/email.service';
 
 @Module({
   providers: [
@@ -16,18 +19,19 @@ import { UserService } from '../user/user.service';
     AuthService,
     JwtStrategy,
     LocalStrategy,
-
+    EmailService,
     UserService,
   ],
   imports: [
     PassportModule,
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, PasswordResetToken]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },
     }),
 
     UserModule,
+    EmailModule,
   ],
   exports: [AuthService],
 })
