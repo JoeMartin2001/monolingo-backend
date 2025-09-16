@@ -89,8 +89,6 @@ export class AuthService {
   }
 
   async resetPassword(rawToken: string, newPassword: string) {
-    console.log('rawToken', rawToken);
-
     if (!/^[0-9a-f]{64}$/i.test(rawToken)) {
       throw new BadRequestException('Invalid token');
     }
