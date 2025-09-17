@@ -82,6 +82,35 @@ class EnvironmentVariables {
   // ───── I18n ─────
   @IsString()
   FALLBACK_LANGUAGE!: string;
+
+  // ───── S3 ─────
+  @IsString()
+  S3_BUCKET!: string;
+
+  @IsString()
+  S3_ENDPOINT!: string;
+
+  @IsString()
+  S3_REGION!: string;
+
+  @IsString()
+  S3_KEY!: string;
+
+  @IsString()
+  S3_SECRET!: string;
+
+  @IsBooleanString()
+  S3_FORCE_PATH_STYLE!: string;
+
+  @IsString()
+  S3_PUBLIC_BASE_URL!: string;
+
+  // ───── MinIO ─────
+  @IsString()
+  MINIO_ROOT_USER!: string;
+
+  @IsString()
+  MINIO_ROOT_PASSWORD!: string;
 }
 
 export function validate(config: Record<string, unknown>) {

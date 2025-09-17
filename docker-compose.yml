@@ -21,6 +21,14 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       DB_SSL: ${DB_SSL}
+
+      # --- S3/MinIO wiring ---
+      S3_BUCKET: ${S3_BUCKET} # e.g. monolingo
+      S3_ENDPOINT: http://minio:9000 # internal URL from app -> minio
+      S3_REGION: us-east-1 # arbitrary for MinIO
+      S3_KEY: ${S3_KEY} # service access key (created below)
+      S3_SECRET: ${S3_SECRET}
+      S3_FORCE_PATH_STYLE: 'true' # important for MinIO
     depends_on:
       postgres:
         condition: service_healthy
@@ -47,5 +55,51 @@ services:
     networks: [app-net]
     restart: unless-stopped
 
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    # expose to localhost only (optional)
+    ports:
+      - '127.0.0.1:9000:9000' # S3 API
+      - '127.0.0.1:9001:9001' # Web console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER} # must be >= 3 chars
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD} # >= 8 chars
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks: [app-net]
+    restart: unless-stopped
+
+  # One-shot init container to:
+  #  - wait for MinIO
+  #  - create bucket
+  #  - set public-read (optional)
+  #  - apply CORS
+  #  - create a service access key pair for your app
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_started
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc alias set local http://minio:9000 ${MINIO_ROOT_USER} ${MINIO_ROOT_PASSWORD}); do
+        echo 'waiting for minio...'; sleep 2;
+      done;
+      /usr/bin/mc mb -p local/${S3_BUCKET} || true;
+      # Optional: make bucket public read (for CDN-style direct GETs)
+      /usr/bin/mc anonymous set download local/${S3_BUCKET} || true;
+      # Apply CORS
+      /usr/bin/mc anonymous set cors local/${S3_BUCKET} /cors.json || true;
+      # Create service account (static creds for your app)
+      /usr/bin/mc admin user svcacct add local ${MINIO_ROOT_USER} --access-key ${S3_KEY} --secret-key ${S3_SECRET} || true;
+      echo 'MinIO ready.';
+      "
+    volumes:
+      - ./cors.json:/cors.json:ro
+    networks: [app-net]
+
 volumes:
   postgres_data:
+  minio_data:

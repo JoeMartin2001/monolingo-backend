@@ -30,4 +30,17 @@ export default registerAs('app', () => ({
 
   // I18n
   fallbackLanguage: process.env.FALLBACK_LANGUAGE || 'en',
+
+  // S3
+  s3Bucket: process.env.S3_BUCKET,
+  s3Endpoint: process.env.S3_ENDPOINT,
+  s3Region: process.env.S3_REGION,
+  s3Key: process.env.S3_KEY,
+  s3Secret: process.env.S3_SECRET,
+  s3ForcePathStyle: process.env.S3_FORCE_PATH_STYLE,
+  s3PublicBaseUrl: process.env.S3_PUBLIC_BASE_URL,
+
+  // MinIO
+  minioRootUser: process.env.MINIO_ROOT_USER,
+  minioRootPassword: process.env.MINIO_ROOT_PASSWORD,
 }));

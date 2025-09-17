@@ -7,6 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
 import { I18nModule } from 'src/infra/i18n/i18n.module';
 import { AppController } from './app.controller';
+import { StorageModule } from 'src/infra/storage/storage.module';
 
 @Module({
   controllers: [AppController],
@@ -17,6 +18,7 @@ import { AppController } from './app.controller';
     DatabaseModule,
     GqlModule,
     I18nModule,
+    StorageModule,
 
     UserModule,
     AuthModule,

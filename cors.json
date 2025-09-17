@@ -1,0 +1,12 @@
+[
+  {
+    "AllowedOrigins": [
+      "http://localhost:3000",
+      "https://your-frontend.example"
+    ],
+    "AllowedMethods": ["GET", "PUT", "POST", "DELETE"],
+    "AllowedHeaders": ["*"],
+    "ExposeHeaders": ["ETag", "x-amz-request-id", "x-amz-version-id"],
+    "MaxAgeSeconds": 3000
+  }
+]

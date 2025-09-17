@@ -7,6 +7,7 @@ import compression from 'compression';
 import { Environment } from './infra/config/env.validation';
 import { I18nMiddleware } from 'nestjs-i18n';
 import { I18nGqlExceptionFilter } from './common/filters/i18n-exception.filter';
+import graphqlUploadExpress from 'graphql-upload/graphqlUploadExpress.mjs';
 
 const bootstrap = async () => {
   try {
@@ -34,6 +35,7 @@ const bootstrap = async () => {
     );
 
     app.use(compression());
+    app.use(graphqlUploadExpress({ maxFileSize: 10_000_000, maxFiles: 1 })); // 10MB
 
     // Global validation
     app.useGlobalPipes(
