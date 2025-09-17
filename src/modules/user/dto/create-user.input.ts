@@ -1,57 +1,103 @@
-import { InputType, Field } from '@nestjs/graphql';
-import { IUser, IUserAuthProvider, LanguageLevel } from 'src/interfaces/User';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import { IsNotEmpty } from 'class-validator';
+// src/modules/user/dto/create-user.input.ts
+import { InputType, Field, GraphQLISODateTime } from '@nestjs/graphql';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+  IsUrl,
+  IsBoolean,
+  IsArray,
+} from 'class-validator';
+import {
+  IUserRole,
+  IUserAuthProvider,
+  LanguageLevel,
+  IUser,
+} from 'src/interfaces/User';
 
 @InputType()
 export class CreateUserInput implements Partial<IUser> {
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String, { description: 'Email' })
+  @Field(() => String)
+  @IsEmail()
   email!: string;
 
+  @Field(() => String)
   @IsString()
-  @IsOptional()
-  @Field(() => String, { description: 'Google ID', nullable: true })
-  googleId?: string;
-
-  @IsString()
-  @IsOptional()
-  @Field(() => IUserAuthProvider, { description: 'Auth Provider' })
-  authProvider!: IUserAuthProvider;
-
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String, { description: 'Username' })
+  @MinLength(3)
   username!: string;
 
+  // Optional: for OAuth-created users you can omit password
+  @Field(() => String, { nullable: true })
   @IsString()
-  @IsNotEmpty()
-  @Field(() => String, { description: 'Native Language' })
-  nativeLanguage!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String, { description: 'Target Language' })
-  targetLanguage!: string;
-
-  @IsString()
-  @IsNotEmpty()
-  @Field(() => String, { description: 'Password' })
+  @MinLength(6)
   password!: string;
 
+  @Field(() => String)
+  @IsString()
+  nativeLanguage!: string;
+
+  @Field(() => String)
+  @IsString()
+  targetLanguage!: string;
+
+  @Field(() => LanguageLevel)
   @IsEnum(LanguageLevel)
-  @IsNotEmpty()
-  @Field(() => LanguageLevel, { description: 'Language Level' })
   level!: LanguageLevel;
 
-  @IsString()
+  @Field(() => String, { nullable: true })
   @IsOptional()
-  @Field(() => String, { description: 'Bio' })
-  bio!: string;
+  @IsString()
+  bio?: string;
 
-  @IsString()
+  @Field(() => String, { nullable: true })
   @IsOptional()
-  @Field(() => String, { description: 'Avatar URL' })
-  avatarUrl!: string;
+  @IsUrl()
+  avatarUrl?: string;
+
+  // Admin/server-controlled knobs (optional)
+  @Field(() => IUserRole, { nullable: true })
+  @IsOptional()
+  @IsEnum(IUserRole)
+  role?: IUserRole;
+
+  @Field(() => IUserAuthProvider, { nullable: true })
+  @IsOptional()
+  @IsEnum(IUserAuthProvider)
+  authProvider?: IUserAuthProvider;
+
+  @Field(() => String, {
+    nullable: true,
+    description: 'Google account ID if linking',
+  })
+  @IsOptional()
+  @IsString()
+  googleId?: string;
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  emailVerified?: boolean;
+
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @IsOptional()
+  emailVerifiedAt?: Date | null;
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languagesLearning?: string[];
+
+  @Field(() => [String], { nullable: true })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  languagesTeaching?: string[];
+
+  @Field(() => Boolean, { nullable: true })
+  @IsOptional()
+  @IsBoolean()
+  isStudent?: boolean;
 }

@@ -9,34 +9,23 @@ type Auth {
 }
 
 input CreateUserInput {
-  """Auth Provider"""
-  authProvider: IUserAuthProvider!
-
-  """Avatar URL"""
-  avatarUrl: String!
-
-  """Bio"""
-  bio: String!
-
-  """Email"""
+  authProvider: IUserAuthProvider
+  avatarUrl: String
+  bio: String
   email: String!
+  emailVerified: Boolean
+  emailVerifiedAt: DateTime
 
-  """Google ID"""
+  """Google account ID if linking"""
   googleId: String
-
-  """Language Level"""
+  isStudent: Boolean
+  languagesLearning: [String!]
+  languagesTeaching: [String!]
   level: LanguageLevel!
-
-  """Native Language"""
   nativeLanguage: String!
-
-  """Password"""
-  password: String!
-
-  """Target Language"""
+  password: String
+  role: IUserRole
   targetLanguage: String!
-
-  """Username"""
   username: String!
 }
 
@@ -49,6 +38,12 @@ scalar DateTime
 enum IUserAuthProvider {
   GOOGLE
   LOCAL
+}
+
+"""User roles"""
+enum IUserRole {
+  STUDENT
+  TUTOR
 }
 
 """CEFR language proficiency levels"""
@@ -73,9 +68,11 @@ type Mutation {
   refreshToken(token: String!): Auth!
   removeUser(id: String!): User!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
+  resendVerification(email: String!): ResendVerification!
   resetPassword(input: ResetPasswordInput!): Boolean!
-  signup(input: CreateUserInput!): Auth!
+  signup(input: RegisterInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
+  verifyEmail(token: String!): VerifyEmail!
 }
 
 type Query {
@@ -83,8 +80,24 @@ type Query {
   users: [User!]!
 }
 
+input RegisterInput {
+  avatarUrl: String
+  bio: String
+  email: String!
+  level: LanguageLevel!
+  nativeLanguage: String!
+  password: String!
+  targetLanguage: String!
+  username: String!
+}
+
 input RequestPasswordResetInput {
   email: String!
+}
+
+type ResendVerification {
+  alreadyVerified: Boolean!
+  success: Boolean!
 }
 
 input ResetPasswordInput {
@@ -93,35 +106,24 @@ input ResetPasswordInput {
 }
 
 input UpdateUserInput {
-  """Auth Provider"""
   authProvider: IUserAuthProvider
-
-  """Avatar URL"""
   avatarUrl: String
-
-  """Bio"""
   bio: String
-
-  """Email"""
   email: String
+  emailVerified: Boolean
+  emailVerifiedAt: DateTime
 
-  """Google ID"""
+  """Google account ID if linking"""
   googleId: String
   id: String!
-
-  """Language Level"""
+  isStudent: Boolean
+  languagesLearning: [String!]
+  languagesTeaching: [String!]
   level: LanguageLevel
-
-  """Native Language"""
   nativeLanguage: String
-
-  """Password"""
   password: String
-
-  """Target Language"""
+  role: IUserRole
   targetLanguage: String
-
-  """Username"""
   username: String
 }
 
@@ -131,16 +133,25 @@ type User {
   bio: String!
   createdAt: DateTime!
   email: String!
-  googleId: String!
+  emailVerified: Boolean!
+  emailVerifiedAt: DateTime
   id: ID!
   isStudent: Boolean!
   languagesLearning: [String!]!
   languagesTeaching: [String!]!
   level: LanguageLevel!
   nativeLanguage: String!
-  password: String!
   role: String!
   targetLanguage: String!
   updatedAt: DateTime!
   username: String!
+}
+
+type VerifyEmail {
+  accessToken: String!
+  alreadyVerified: Boolean!
+  refreshToken: String!
+  success: Boolean!
+  tokenExpired: Boolean!
+  user: User!
 }

@@ -1,17 +1,49 @@
-import { InputType, Field, PartialType } from '@nestjs/graphql';
-import { IsUUID, IsNotEmpty, MinLength, IsString } from 'class-validator';
-import { CreateUserInput } from 'src/modules/user/dto/create-user.input';
+import { InputType, Field } from '@nestjs/graphql';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+  IsUrl,
+} from 'class-validator';
+import { IUser, LanguageLevel } from 'src/interfaces/User';
 
 @InputType()
-export class RegisterInput extends PartialType(CreateUserInput) {
+export class RegisterInput implements Partial<IUser> {
   @Field(() => String)
-  @IsUUID()
-  @IsNotEmpty()
-  id!: string;
+  @IsEmail()
+  email!: string;
+
+  @Field(() => String)
+  @IsString()
+  @MinLength(3)
+  username!: string;
 
   @Field(() => String)
   @IsString()
   @MinLength(6)
-  @IsNotEmpty()
   password!: string;
+
+  @Field(() => String)
+  @IsString()
+  nativeLanguage!: string;
+
+  @Field(() => String)
+  @IsString()
+  targetLanguage!: string;
+
+  @Field(() => LanguageLevel)
+  @IsEnum(LanguageLevel)
+  level!: LanguageLevel;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsString()
+  bio?: string;
+
+  @Field(() => String, { nullable: true })
+  @IsOptional()
+  @IsUrl()
+  avatarUrl?: string;
 }

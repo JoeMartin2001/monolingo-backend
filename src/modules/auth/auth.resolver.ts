@@ -2,9 +2,11 @@ import { Resolver, Mutation, Args, Context } from '@nestjs/graphql';
 import { AuthService } from './auth.service';
 import { Auth } from './entities/auth.entity';
 import { LoginInput } from './dto/login.input';
-import { CreateUserInput } from '../user/dto/create-user.input';
 import { ResetPasswordInput } from './dto/reset-password.input';
 import { RequestPasswordResetInput } from './dto/request-password-reset.input';
+import { VerifyEmail } from './entities/verify-email.entity';
+import { RegisterInput } from './dto/register.input';
+import { ResendVerification } from './entities/resend-verification.entity';
 
 @Resolver(() => Auth)
 export class AuthResolver {
@@ -16,7 +18,7 @@ export class AuthResolver {
   }
 
   @Mutation(() => Auth)
-  async signup(@Args('input') input: CreateUserInput) {
+  async signup(@Args('input') input: RegisterInput) {
     return this.authService.signup(input);
   }
 
@@ -59,5 +61,32 @@ export class AuthResolver {
     await this.authService.resetPassword(input.token, input.newPassword);
 
     return true;
+  }
+
+  @Mutation(() => ResendVerification)
+  async resendVerification(
+    @Args('email') email: string,
+    @Context()
+    {
+      req,
+    }: {
+      req: {
+        ip: string;
+        headers: {
+          'user-agent': string;
+        };
+      };
+    },
+  ) {
+    return this.authService.resendVerification(
+      email,
+      req?.ip,
+      req?.headers['user-agent'],
+    );
+  }
+
+  @Mutation(() => VerifyEmail)
+  async verifyEmail(@Args('token') token: string) {
+    return this.authService.verifyEmail(token);
   }
 }

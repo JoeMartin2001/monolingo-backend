@@ -1,4 +1,4 @@
-// src/modules/auth/entities/password-reset-token.entity.ts
+// src/modules/auth/entities/email-verification-token.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -11,9 +11,9 @@ import {
 import { User } from 'src/modules/user/entities/user.entity';
 import { TableName } from 'src/common/constants/TableName';
 
-@Entity(TableName.PASSWORD_RESET_TOKENS)
-@Index('pr_user_active_idx', ['userId', 'usedAt']) // for invalidateActiveTokens(userId, usedAt IS NULL)
-export class PasswordResetToken {
+@Entity(TableName.EMAIL_VERIFICATION_TOKENS)
+@Index('ev_user_active_idx', ['userId', 'usedAt']) // for invalidateActiveTokens(userId, usedAt IS NULL)
+export class EmailVerificationToken {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -25,9 +25,8 @@ export class PasswordResetToken {
   @JoinColumn({ name: 'userId' })
   user!: User;
 
-  // store ONLY the hash
   @Index({ unique: true })
-  @Column({ type: 'char', length: 64 }) // hex sha256 => 64 chars
+  @Column({ type: 'char', length: 64 }) // sha256 hex
   tokenHash!: string;
 
   @Index()
@@ -41,7 +40,7 @@ export class PasswordResetToken {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 
-  @Column({ type: 'varchar', length: 45, nullable: true }) // IPv4/IPv6 textual fits; adjust if you like
+  @Column({ type: 'varchar', length: 45, nullable: true })
   ip?: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })

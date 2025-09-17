@@ -11,6 +11,13 @@ export type I18nTranslations = {
         "unverified_google_email": string;
         "email_in_use": string;
         "HELLO": string;
+        "invalid_token": string;
+        "token_already_used": string;
+        "token_expired": string;
+        "invalid_or_expired_token": string;
+        "google_authentication_failed": string;
+        "email_already_in_use": string;
+        "username_already_in_use": string;
     };
 };
 /* prettier-ignore */

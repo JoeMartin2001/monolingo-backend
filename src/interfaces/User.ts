@@ -28,6 +28,9 @@ export interface IUser {
   googleId?: string;
   bio?: string;
   avatarUrl?: string;
+  emailVerified: boolean;
+  emailVerifiedAt: Date | null;
+  role: IUserRole;
 
   createdAt: Date;
   updatedAt: Date;

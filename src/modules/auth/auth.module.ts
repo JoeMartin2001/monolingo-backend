@@ -12,6 +12,7 @@ import { UserService } from '../user/user.service';
 import { EmailModule } from '../email/email.module';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { EmailService } from '../email/email.service';
+import { EmailVerificationToken } from './entities/email-verification-token.entity';
 
 @Module({
   providers: [
@@ -24,7 +25,11 @@ import { EmailService } from '../email/email.service';
   ],
   imports: [
     PassportModule,
-    TypeOrmModule.forFeature([User, PasswordResetToken]),
+    TypeOrmModule.forFeature([
+      User,
+      PasswordResetToken,
+      EmailVerificationToken,
+    ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN },

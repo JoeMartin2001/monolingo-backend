@@ -1,5 +1,17 @@
-import { ObjectType, Field, ID } from '@nestjs/graphql';
-import { IsEmail, IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import {
+  ObjectType,
+  Field,
+  ID,
+  HideField,
+  GraphQLISODateTime,
+} from '@nestjs/graphql';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  IsBoolean,
+} from 'class-validator';
 import {
   IUser,
   IUserAuthProvider,
@@ -21,13 +33,13 @@ export class User implements IUser {
   @Column({ unique: true })
   email!: string;
 
-  @Field()
+  @HideField()
   @IsString()
   @IsNotEmpty()
-  @Column({ nullable: true })
-  password!: string; // don’t expose in GraphQL schema
+  @Column({ type: 'text', nullable: true })
+  password!: string;
 
-  @Field()
+  @HideField()
   @IsString()
   @IsOptional()
   @Column({ nullable: true })
@@ -86,4 +98,14 @@ export class User implements IUser {
   @Field()
   @Column({ default: '' })
   targetLanguage!: string;
+
+  @Field(() => Boolean)
+  @IsBoolean()
+  @Column({ type: 'boolean', default: false, nullable: false })
+  emailVerified!: boolean;
+
+  @Field(() => GraphQLISODateTime, { nullable: true })
+  @IsOptional()
+  @Column({ type: 'timestamptz', nullable: true })
+  emailVerifiedAt!: Date | null;
 }

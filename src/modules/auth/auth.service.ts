@@ -9,17 +9,23 @@ import { UserService } from '../user/user.service';
 import { User } from '../user/entities/user.entity';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { CreateUserInput } from '../user/dto/create-user.input';
 import { OAuth2Client } from 'google-auth-library';
 import { Auth } from './entities/auth.entity';
-import { IUserAuthProvider, LanguageLevel } from 'src/interfaces/User';
+import {
+  IUserAuthProvider,
+  IUserRole,
+  LanguageLevel,
+} from 'src/interfaces/User';
 import { randomUUID } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
-import { IsNull, MoreThan, Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { EmailService } from 'src/modules/email/email.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { I18nService } from 'nestjs-i18n';
+import { EmailVerificationToken } from './entities/email-verification-token.entity';
+import { RegisterInput } from './dto/register.input';
+import { ResendVerification } from './entities/resend-verification.entity';
 
 @Injectable()
 export class AuthService {
@@ -28,10 +34,10 @@ export class AuthService {
   private MOBILE_REDIRECT: string;
 
   constructor(
-    @InjectRepository(User) private readonly userRepo: Repository<User>,
     @InjectRepository(PasswordResetToken)
     private readonly prRepo: Repository<PasswordResetToken>,
-
+    @InjectRepository(EmailVerificationToken)
+    private readonly evtRepo: Repository<EmailVerificationToken>,
     private readonly usersService: UserService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -49,6 +55,136 @@ export class AuthService {
     this.MOBILE_REDIRECT =
       this.configService.get<string>('MOBILE_REDIRECT_URI') ||
       'monolingo://reset';
+  }
+
+  private async sendEmailVerificationLink(
+    user: User,
+    ip?: string,
+    ua?: string,
+  ) {
+    // invalidate previous unused tokens
+    await this.evtRepo.update(
+      { userId: user.id, usedAt: IsNull() },
+      { usedAt: new Date() },
+    );
+
+    const raw = crypto.randomBytes(32).toString('hex'); // 64-hex chars
+    const tokenHash = crypto.createHash('sha256').update(raw).digest('hex');
+
+    await this.evtRepo.save({
+      userId: user.id,
+      tokenHash,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      usedAt: null,
+      ip,
+      userAgent: ua,
+    });
+
+    const link = `${this.FRONTEND_URL}/verify-email?token=${raw}`;
+
+    await this.emailService.sendEmailVerification(user.email, {
+      username: user.username ?? user.email,
+      verificationLink: link,
+      expiresInMinutes: 15,
+    });
+  }
+
+  async resendVerification(
+    email: string,
+    ip?: string,
+    ua?: string,
+  ): Promise<ResendVerification> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) return { success: true }; // avoid enumeration
+
+    if (user.emailVerified) {
+      return { success: true, alreadyVerified: true }; // already verified
+    }
+
+    // TODO: add simple throttle (e.g., check recent token timestamp)
+    await this.sendEmailVerificationLink(user, ip, ua);
+
+    return { success: true };
+  }
+
+  async verifyEmail(rawToken: string) {
+    // quick shape check (optional)
+    if (!/^[0-9a-f]{64}$/i.test(rawToken)) {
+      throw new BadRequestException(this.i18n.t('auth.invalid_token'));
+    }
+
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(rawToken)
+      .digest('hex');
+
+    const record = await this.evtRepo.findOne({
+      where: { tokenHash, usedAt: IsNull() },
+      relations: ['user'],
+    });
+
+    if (!record) {
+      throw new BadRequestException(
+        this.i18n.t('auth.invalid_or_expired_token'),
+      );
+    }
+
+    if (record.expiresAt.getTime() < Date.now()) {
+      record.usedAt = new Date();
+      await this.evtRepo.save(record);
+
+      await this.resendVerification(
+        record.user.email,
+        record.ip,
+        record.userAgent,
+      );
+
+      return {
+        success: true,
+        tokenExpired: true,
+        user: record.user,
+      };
+    }
+
+    const user = record.user;
+
+    if (user.emailVerified) {
+      // mark token as used anyway to prevent reuse
+      record.usedAt = new Date();
+
+      await this.evtRepo.save(record);
+
+      return {
+        success: true,
+        alreadyVerified: true,
+        tokenExpired: false,
+        user,
+      };
+    }
+
+    await this.usersService.update(user.id, {
+      id: user.id,
+      emailVerified: true,
+      emailVerifiedAt: new Date(),
+    });
+
+    record.usedAt = new Date();
+    await this.evtRepo.save(record);
+
+    // Optional: sign in after verification
+    const { accessToken, refreshToken } = await this.signPair({
+      id: user.id,
+      email: user.email,
+    });
+
+    return {
+      success: true,
+      accessToken,
+      refreshToken,
+      alreadyVerified: false,
+      user,
+      tokenExpired: false,
+    };
   }
 
   // Rate-limit-ish: invalidate existing tokens for this user before creating a new one
@@ -93,7 +229,7 @@ export class AuthService {
 
   async resetPassword(rawToken: string, newPassword: string) {
     if (!/^[0-9a-f]{64}$/i.test(rawToken)) {
-      throw new BadRequestException('Invalid token');
+      throw new BadRequestException(this.i18n.t('auth.invalid_token'));
     }
 
     const tokenHash = crypto
@@ -103,18 +239,28 @@ export class AuthService {
 
     // 1) Look up token
     const token = await this.prRepo.findOne({
-      where: { tokenHash, usedAt: IsNull(), expiresAt: MoreThan(new Date()) },
+      where: { tokenHash },
       relations: ['user'],
     });
 
-    if (!token) throw new BadRequestException('Invalid token');
-    if (token.usedAt) throw new BadRequestException('Token already used');
-    if (token.expiresAt.getTime() < Date.now())
-      throw new BadRequestException('Token expired');
+    if (!token) {
+      throw new BadRequestException(this.i18n.t('auth.invalid_token'));
+    }
+
+    if (token.usedAt) {
+      throw new BadRequestException(this.i18n.t('auth.token_already_used'));
+    }
+
+    if (token.expiresAt.getTime() < Date.now()) {
+      throw new BadRequestException(this.i18n.t('auth.token_expired'));
+    }
 
     // 2) Update password
     const hashed = await bcrypt.hash(newPassword, 10);
-    await this.userRepo.update({ id: token.userId }, { password: hashed });
+    await this.usersService.update(token.userId, {
+      password: hashed,
+      id: token.userId,
+    });
 
     // Optional: invalidate all sessions/refresh tokens for this user here
 
@@ -141,71 +287,86 @@ export class AuthService {
 
   async googleAuth(token: string): Promise<Auth> {
     try {
-      // 1. Verify the Google access token
-      const ticket = await this.googleClient.verifyIdToken({
-        idToken: token,
-        audience: this.configService.get('googleClientId'),
-      });
-      const payload = ticket.getPayload();
+      let payload: import('google-auth-library').TokenPayload | undefined;
+      try {
+        const ticket = await this.googleClient.verifyIdToken({
+          idToken: token,
+        });
 
-      if (!payload || !payload.email) {
+        payload = ticket.getPayload();
+      } catch (e) {
+        console.error(e);
+
+        // common cause: Wrong recipient (aud mismatch)
         throw new UnauthorizedException(
           this.i18n.t('auth.invalid_google_token'),
         );
       }
 
-      if (!payload?.email || !payload?.email_verified)
+      if (!payload?.email) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.invalid_google_token'),
+        );
+      }
+
+      if (!payload.email_verified) {
         throw new UnauthorizedException(
           this.i18n.t('auth.unverified_google_email'),
         );
+      }
 
-      const googleId = payload?.sub;
-      const email = payload?.email;
-      const name = payload.name || email.split('@')[0];
-      const picture = payload.picture || '';
+      if (!payload.sub) {
+        throw new UnauthorizedException(
+          this.i18n.t('auth.invalid_google_token'),
+        );
+      }
 
-      // Link precedence: googleId → email
-      let user = await this.usersService.findByGoogleId?.(googleId);
+      // 2) Normalize
+      const googleId = payload.sub;
+      const email = payload.email.toLowerCase();
+      const nameSlug = (payload.name || email.split('@')[0])
+        .replace(/\s+/g, '')
+        .toLowerCase();
+      const picture = payload.picture ?? '';
 
+      // 3) Find/link/create user
+      let user = await this.usersService.findByGoogleId(googleId);
       if (!user) {
-        user = await this.usersService.findByEmail(email);
-        if (user) {
-          user.authProvider = IUserAuthProvider.GOOGLE;
-          user.googleId = googleId;
-          user.avatarUrl = picture;
+        const byEmail = await this.usersService.findByEmail(email);
+        if (byEmail) {
+          // Link Google to an existing account
+          byEmail.googleId = byEmail.googleId ?? googleId;
+          byEmail.authProvider = IUserAuthProvider.GOOGLE;
+          if (!byEmail.emailVerified) {
+            byEmail.emailVerified = true;
+            byEmail.emailVerifiedAt = new Date();
+          }
+          if (!byEmail.avatarUrl && picture) byEmail.avatarUrl = picture;
+          if (!byEmail.username) byEmail.username = nameSlug;
 
-          if (!user.avatarUrl && picture) user.avatarUrl = picture;
-          if (!user.username && name)
-            user.username = name.replace(/\s+/g, '').toLowerCase();
-
-          user = await this.usersService.create(user);
+          user = await this.usersService.create(byEmail);
         } else {
-          // Create new OAuth user; avoid plaintext dummy passwords
+          // Create a new account
+          // If password is nullable in your entity, set it to null. Otherwise keep the random hash.
           const randomHash = await bcrypt.hash(randomUUID(), 10);
 
-          const input: Partial<CreateUserInput> & { password: string } = {
-            email,
-            username: name.replace(/\s+/g, '').toLowerCase(),
-            password: randomHash, // only if password is non-nullable
-            nativeLanguage: 'uz', // choose sensible defaults for your app
-            targetLanguage: 'en',
-            level: LanguageLevel.A1, // or set a default
-            bio: '',
-            avatarUrl: picture,
-          };
-
-          // If your entity now allows nullable password, set password: undefined and omit this
           user = await this.usersService.create({
-            ...input,
             email,
-            googleId,
-            authProvider: IUserAuthProvider.GOOGLE,
-            avatarUrl: picture,
-            username: name.replace(/\s+/g, '').toLowerCase(),
+            username: nameSlug,
+            password: randomHash, // or null if column is nullable
             nativeLanguage: 'uz',
             targetLanguage: 'en',
             level: LanguageLevel.A1,
             bio: '',
+            avatarUrl: picture,
+            role: IUserRole.STUDENT,
+            googleId,
+            authProvider: IUserAuthProvider.GOOGLE,
+            emailVerified: true,
+            emailVerifiedAt: new Date(),
+            languagesLearning: [],
+            languagesTeaching: [],
+            isStudent: true,
           });
         }
       }
@@ -215,26 +376,34 @@ export class AuthService {
       return { accessToken, refreshToken, user };
     } catch (error) {
       console.error(error);
-      throw new UnauthorizedException('Google authentication failed');
+      throw new UnauthorizedException(
+        this.i18n.t('auth.google_authentication_failed'),
+      );
     }
   }
 
-  async signup(signupInput: CreateUserInput) {
+  async signup(signupInput: RegisterInput) {
     const existingUser = await this.usersService.findByEmail(signupInput.email);
-    if (existingUser) throw new ConflictException('Email already in use');
+    if (existingUser)
+      throw new ConflictException(this.i18n.t('auth.email_already_in_use'));
 
     const existingUsername = await this.usersService.findByUsername(
       signupInput.username,
     );
     if (existingUsername)
-      throw new ConflictException('Username already in use');
+      throw new ConflictException(this.i18n.t('auth.username_already_in_use'));
 
     const hashedPassword = await bcrypt.hash(signupInput.password, 10);
 
     const user = await this.usersService.create({
       ...signupInput,
       password: hashedPassword,
+      emailVerified: false,
+      emailVerifiedAt: null,
+      role: IUserRole.STUDENT,
     });
+
+    await this.sendEmailVerificationLink(user);
 
     const { accessToken, refreshToken } = await this.signPair(user);
 

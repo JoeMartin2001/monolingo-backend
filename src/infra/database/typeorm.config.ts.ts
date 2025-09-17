@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { User } from 'src/modules/user/entities/user.entity';
 import { PasswordResetToken } from 'src/modules/auth/entities/password-reset-token.entity';
 import { Environment } from '../config/env.validation';
+import { EmailVerificationToken } from 'src/modules/auth/entities/email-verification-token.entity';
 
 export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
   type: 'postgres' as const,
@@ -21,5 +22,6 @@ export const typeOrmConfig = (config: ConfigService): TypeOrmModuleOptions => ({
   )
     ? ['query', 'error', 'schema']
     : false,
-  entities: [User, PasswordResetToken],
+  entities: [User, PasswordResetToken, EmailVerificationToken],
+  // dropSchema: true,
 });
