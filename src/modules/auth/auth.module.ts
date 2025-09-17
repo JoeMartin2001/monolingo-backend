@@ -13,6 +13,7 @@ import { EmailModule } from '../email/email.module';
 import { PasswordResetToken } from './entities/password-reset-token.entity';
 import { EmailService } from '../email/email.service';
 import { EmailVerificationToken } from './entities/email-verification-token.entity';
+import { StorageService } from 'src/infra/storage/storage.service';
 
 @Module({
   providers: [
@@ -22,6 +23,7 @@ import { EmailVerificationToken } from './entities/email-verification-token.enti
     LocalStrategy,
     EmailService,
     UserService,
+    StorageService,
   ],
   imports: [
     PassportModule,

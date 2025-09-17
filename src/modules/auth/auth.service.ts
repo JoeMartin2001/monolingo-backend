@@ -26,6 +26,7 @@ import { I18nService } from 'nestjs-i18n';
 import { EmailVerificationToken } from './entities/email-verification-token.entity';
 import { RegisterInput } from './dto/register.input';
 import { ResendVerification } from './entities/resend-verification.entity';
+import { StorageService } from 'src/infra/storage/storage.service';
 
 @Injectable()
 export class AuthService {
@@ -42,6 +43,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly emailService: EmailService,
+    private readonly storage: StorageService,
 
     private readonly i18n: I18nService,
   ) {
@@ -401,7 +403,28 @@ export class AuthService {
       emailVerified: false,
       emailVerifiedAt: null,
       role: IUserRole.STUDENT,
+      avatarUrl: undefined,
     });
+
+    if (signupInput.avatarUrl) {
+      // Validate the uploaded temp object exists and is under tmp/avatars
+      if (
+        !(await this.storage.exists(signupInput.avatarUrl)) ||
+        !signupInput.avatarUrl.startsWith('tmp/avatars/')
+      ) {
+        throw new Error('Invalid avatar upload reference');
+      }
+      const ext = signupInput.avatarUrl.split('.').pop() || 'jpg';
+      const finalKey = `users/${user.id}/avatar.${ext}`;
+      await this.storage.move(signupInput.avatarUrl, finalKey);
+
+      await this.usersService.update(user.id, {
+        id: user.id,
+        avatarUrl: finalKey,
+      });
+
+      user.avatarUrl = finalKey;
+    }
 
     await this.sendEmailVerificationLink(user);
 

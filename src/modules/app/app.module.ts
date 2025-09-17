@@ -18,7 +18,7 @@ import { StorageModule } from 'src/infra/storage/storage.module';
     DatabaseModule,
     GqlModule,
     I18nModule,
-    StorageModule,
+    StorageModule.forRoot(),
 
     UserModule,
     AuthModule,

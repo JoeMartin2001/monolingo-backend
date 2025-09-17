@@ -1,5 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { S3_CLIENT, STORAGE_OPTS, type StorageOptions } from './storage.tokens';
+import {
+  S3_CLIENT,
+  S3_SIGNER,
+  STORAGE_OPTS,
+  type StorageOptions,
+} from './storage.tokens';
 import {
   PutObjectCommand,
   GetObjectCommand,
@@ -15,7 +20,8 @@ import { Readable } from 'stream';
 @Injectable()
 export class StorageService {
   constructor(
-    @Inject(S3_CLIENT) private readonly s3: S3Client,
+    @Inject(S3_CLIENT) private readonly s3: S3Client, // server->S3
+    @Inject(S3_SIGNER) private readonly signer: S3Client, // presigned URLs for browser
     @Inject(STORAGE_OPTS) private readonly opts: StorageOptions,
   ) {}
 
