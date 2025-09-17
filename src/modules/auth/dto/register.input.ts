@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   MinLength,
-  IsUrl,
 } from 'class-validator';
 import { IUser, LanguageLevel } from 'src/interfaces/User';
 
@@ -44,6 +43,6 @@ export class RegisterInput implements Partial<IUser> {
 
   @Field(() => String, { nullable: true })
   @IsOptional()
-  @IsUrl()
+  @IsString()
   avatarUrl?: string;
 }

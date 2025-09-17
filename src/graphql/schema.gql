@@ -67,12 +67,20 @@ type Mutation {
   login(input: LoginInput!): Auth!
   refreshToken(token: String!): Auth!
   removeUser(id: String!): User!
+
+  """Get presigned PUT URL for avatar"""
+  requestAvatarUploadUrl(filename: String!, mime: String!): PresignedUrl!
   requestPasswordReset(input: RequestPasswordResetInput!): Boolean!
   resendVerification(email: String!): ResendVerification!
   resetPassword(input: ResetPasswordInput!): Boolean!
   signup(input: RegisterInput!): Auth!
   updateUser(updateUserInput: UpdateUserInput!): User!
   verifyEmail(token: String!): VerifyEmail!
+}
+
+type PresignedUrl {
+  key: String!
+  url: String!
 }
 
 type Query {

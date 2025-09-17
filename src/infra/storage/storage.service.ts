@@ -49,7 +49,8 @@ export class StorageService {
       Key: key,
       ContentType: contentType,
     });
-    const url = await getSignedUrl(this.s3, cmd, { expiresIn });
+
+    const url = await getSignedUrl(this.signer, cmd, { expiresIn });
     return { url, key };
   }
 
@@ -70,7 +71,7 @@ export class StorageService {
 
   async presignGet(key: string, expiresIn = 900) {
     const cmd = new GetObjectCommand({ Bucket: this.opts.bucket, Key: key });
-    return getSignedUrl(this.s3, cmd, { expiresIn });
+    return getSignedUrl(this.signer, cmd, { expiresIn });
   }
 
   async uploadStream(key: string, body: Readable, contentType?: string) {

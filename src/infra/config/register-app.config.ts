@@ -34,6 +34,7 @@ export default registerAs('app', () => ({
   // S3
   s3Bucket: process.env.S3_BUCKET,
   s3Endpoint: process.env.S3_ENDPOINT,
+  s3PublicEndpoint: process.env.S3_PUBLIC_ENDPOINT,
   s3Region: process.env.S3_REGION,
   s3Key: process.env.S3_KEY,
   s3Secret: process.env.S3_SECRET,

@@ -9,6 +9,7 @@ import {
   type StorageOptions,
 } from './storage.tokens';
 import { StorageService } from './storage.service';
+import { StorageResolver } from './storage.resolver';
 
 const bool = (v: unknown, def = false) => {
   if (v === undefined) {
@@ -115,7 +116,13 @@ export class StorageModule {
     return {
       module: StorageModule,
       imports: [ConfigModule], // so ConfigService is available here
-      providers: [s3Provider, signerProvider, optionsProvider, StorageService],
+      providers: [
+        s3Provider,
+        signerProvider,
+        optionsProvider,
+        StorageService,
+        StorageResolver,
+      ],
       exports: [s3Provider, signerProvider, optionsProvider, StorageService],
     };
   }
